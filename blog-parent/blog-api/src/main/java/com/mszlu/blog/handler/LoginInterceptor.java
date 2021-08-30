@@ -23,8 +23,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     private LoginService loginService;
 
     @Override
+    //在执行Controller方法之前进行执行
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        //在执行Controller方法之前进行执行
         /**
          * 1 判断请求的接口路径是否为HandlerMethod（Controller方法）
          * 2 判断token是否为空，如果为空，未登录；
