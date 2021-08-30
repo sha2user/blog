@@ -60,7 +60,7 @@ public class LoginInterceptor implements HandlerInterceptor {
             return false;
         }
         //3
-        //如果希望在Controller中直接获取用户的信息，怎么获取呢？
+        //如果希望在Controller中直接获取用户的信息，怎么获取呢？👇
         UserThreadLocal.put(sysUser);
         return true;
     }
