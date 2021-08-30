@@ -7,10 +7,7 @@ import com.mszlu.blog.dao.mapper.ArticleBodyMapper;
 import com.mszlu.blog.dao.mapper.ArticleMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.mszlu.blog.dao.mapper.ArticleTagMapper;
-import com.mszlu.blog.dao.pojo.Article;
-import com.mszlu.blog.dao.pojo.ArticleBody;
-import com.mszlu.blog.dao.pojo.ArticleTag;
-import com.mszlu.blog.dao.pojo.SysUser;
+import com.mszlu.blog.dao.pojo.*;
 import com.mszlu.blog.service.*;
 import com.mszlu.blog.utils.UserThreadLocal;
 import com.mszlu.blog.vo.ArticleBodyVo;
@@ -55,6 +52,23 @@ public class ArticleServiceImpl implements ArticleService {
          */
         Page page=new Page<>(pageParams.getPage(),pageParams.getPageSize());
         LambdaQueryWrapper<Article> queryWrapper=new LambdaQueryWrapper<>();
+        if(pageParams.getCategoryId()!=null){
+            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
+        }
+        List<Long> articleIdList=new ArrayList<>();
+        if(pageParams.getTagId()!=null){
+            //加入标签，进行条件查询. 🐖但Article表并没有Tag字段（因为一篇文章可能有多个标签）
+            //article_tag 中的article_id ：tag_id  是1 : n关系
+            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper=new LambdaQueryWrapper<>();
+            articleTagLambdaQueryWrapper.eq(ArticleTag::getId,pageParams.getTagId());
+            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
+            for (ArticleTag articleTag : articleTags) {
+                articleIdList.add(articleTag.getArticleId());
+            }
+            if (articleIdList.size()>0){
+                queryWrapper.in(Article::getId,articleIdList);
+            }
+        }
         //是否置顶排序 与 order by create_date desc
         queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
         Page articlePage = articleMapper.selectPage(page, queryWrapper);
