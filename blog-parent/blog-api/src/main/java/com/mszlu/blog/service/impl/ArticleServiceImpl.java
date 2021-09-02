@@ -47,36 +47,45 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public Result listArticle(PageParams pageParams){
-        /**
-         * 1.分页查询article数据库表
-         */
-        Page page=new Page<>(pageParams.getPage(),pageParams.getPageSize());
-        LambdaQueryWrapper<Article> queryWrapper=new LambdaQueryWrapper<>();
-        if(pageParams.getCategoryId()!=null){
-            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
-        }
-        List<Long> articleIdList=new ArrayList<>();
-        if(pageParams.getTagId()!=null){
-            //加入标签，进行条件查询. 🐖但Article表并没有Tag字段（因为一篇文章可能有多个标签）
-            //article_tag 中的article_id ：tag_id  是1 : n关系
-            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper=new LambdaQueryWrapper<>();
-            articleTagLambdaQueryWrapper.eq(ArticleTag::getId,pageParams.getTagId());
-            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
-            for (ArticleTag articleTag : articleTags) {
-                articleIdList.add(articleTag.getArticleId());
-            }
-            if (articleIdList.size()>0){
-                queryWrapper.in(Article::getId,articleIdList);
-            }
-        }
-        //是否置顶排序 与 order by create_date desc
-        queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
-        Page articlePage = articleMapper.selectPage(page, queryWrapper);
-        List<Article> records=articlePage.getRecords();
-        //不能直接返回,需要将Ariticle类型转换为ArticleVo类型并通过Result返回。
-        List<ArticleVo> articleVoList=copyList(records,true,true);
-        return Result.success(articleVoList);
+        Page<Article> page=new Page<>(pageParams.getPage(),pageParams.getPageSize());
+        IPage<Article> articleIPage = articleMapper.listArticle(page, pageParams.getCategoryId(), pageParams.getTagId(),
+                pageParams.getYear(), pageParams.getMonth());
+        List<Article> records = articleIPage.getRecords();
+        return Result.success(copyList(records,true,true));
     }
+
+//    @Override
+//    public Result listArticle(PageParams pageParams){
+//        /**
+//         * 1.分页查询article数据库表
+//         */
+//        Page<Article> page=new Page<>(pageParams.getPage(),pageParams.getPageSize());
+//        LambdaQueryWrapper<Article> queryWrapper=new LambdaQueryWrapper<>();
+//        if(pageParams.getCategoryId()!=null){
+//            queryWrapper.eq(Article::getCategoryId,pageParams.getCategoryId());
+//        }
+//        List<Long> articleIdList=new ArrayList<>();
+//        if(pageParams.getTagId()!=null){
+//            //加入标签，进行条件查询. 🐖但Article表并没有Tag字段（因为一篇文章可能有多个标签）
+//            //article_tag 中的article_id ：tag_id  是1 : n关系
+//            LambdaQueryWrapper<ArticleTag> articleTagLambdaQueryWrapper=new LambdaQueryWrapper<>();
+//            articleTagLambdaQueryWrapper.eq(ArticleTag::getId,pageParams.getTagId());
+//            List<ArticleTag> articleTags = articleTagMapper.selectList(articleTagLambdaQueryWrapper);
+//            for (ArticleTag articleTag : articleTags) {
+//                articleIdList.add(articleTag.getArticleId());
+//            }
+//            if (articleIdList.size()>0){
+//                queryWrapper.in(Article::getId,articleIdList);
+//            }
+//        }
+//        //是否置顶排序 与 order by create_date desc
+//        queryWrapper.orderByDesc(Article::getWeight,Article::getCreateDate);
+//        Page articlePage = articleMapper.selectPage(page, queryWrapper);
+//        List<Article> records=articlePage.getRecords();
+//        //不能直接返回,需要将Ariticle类型转换为ArticleVo类型并通过Result返回。
+//        List<ArticleVo> articleVoList=copyList(records,true,true);
+//        return Result.success(articleVoList);
+//    }
 
     /**
      * 最热文章

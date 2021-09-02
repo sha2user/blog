@@ -56,7 +56,7 @@ public class SysUserServiceImpl implements SysUserService {
             return Result.fail(ErrorCode.TOKEN_ERROR.getCode(), ErrorCode.TOKEN_ERROR.getMsg());
         }
         LoginUserVo loginUserVo= new LoginUserVo();
-        loginUserVo.setId(sysUser.getId());
+        loginUserVo.setId(String.valueOf(sysUser.getId()));
         loginUserVo.setAccount(sysUser.getAccount());
         loginUserVo.setNickname(sysUser.getNickname());
         loginUserVo.setAvatar(sysUser.getAvatar());
